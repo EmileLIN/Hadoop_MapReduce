@@ -3,48 +3,37 @@
 import sys
 import csv
 
-def getbesthour(hours):
-	besthour = list()
-	maxcount = 0
-	for i in range(1,24):
-		if(hours[i] > maxcount):
-			maxcount = hours[i]
-
-	for i in range(1,24):
-		if(hours[i] == maxcount):
-			besthour.append(i)
-
-	return besthour
 
 reader = csv.reader(sys.stdin, delimiter='\t', lineterminator='\r\n')
 writer = csv.writer(sys.stdout, delimiter='\t', quotechar = '"', quoting = csv.QUOTE_ALL)
-hours = [0]*25
-besthour = None
-olduserid = None
+
+ques_dic = dict()
+answ_dic = dict()
+oldnodeid = None
 
 for line in reader:
-	if (line != None) and (len(line) == 2):
-		thisuserid,hour = line
-		hour = int(hour)
+	if (line != None) and (len(line) == 4):
+		thisnodeid, node_type, parent_id, bodylength = line
 	else:
 		continue
 	
-	if (olduserid != None) and (olduserid != thisuserid):
-		besthour = getbesthour(hours)
-		for bh in besthour:
-			new_data = [olduserid,bh] 
-			writer.writerow(new_data)
-		besthour = None		
-		hours = [0]*25	
+	
+	if node_type == 'question':
+		if thisnodeid not in ques_dic: 
+			ques_dic[thisnodeid] = float(bodylength)
+	elif node_type == 'answer':
+		if parent_id not in answ_dic:
+			answ_dic[parent_id] = list()
+		answ_dic[parent_id].append(float(bodylength))
 
-	olduserid = thisuserid
-	hours[hour] = hours[hour]+1	
+for key in ques_dic.keys():
+	if key in answ_dic:
+		print key,"\t",ques_dic[key],"\t",sum(answ_dic[key])/len(answ_dic[key])
+	else:
+		print key,"\t",ques_dic[key],"\t","No Answers"
 
-if(olduserid != None):
-	besthour = getbesthour(hours)
-	for bh in besthour:
-		new_data = [olduserid,bh] 
-		writer.writerow(new_data)
+
+	
 		
 
 
